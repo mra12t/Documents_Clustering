@@ -1,0 +1,141 @@
+---
+title: "Document Clustering"
+output: github_document
+date: "2022-12-26"
+---
+### About the Study and the Data Set
+Document clustering is a technique that uses algorithms to group text documents into categories based on their content. This can be useful for organizing search results or other large collections of texts, making it easier to find relevant information. Clustering methods are often used by search engines to group search results into categories. There are two main types of algorithms used for document clustering: hierarchical and k-means. An example of a website that uses document clustering is Daily Kos, an American political blog that publishes news and opinion articles from a progressive perspective. The site was founded in 2002 and has a large daily traffic.    
+
+
+The file "dailykos.csv" contains data on 3,430 news articles or blog posts published on the website Daily Kos in the year leading up to the 2004 United States Presidential Election. The candidates in this election were incumbent President George W. Bush of the Republican Party and John Kerry of the Democratic Party. The invasion of Iraq in 2003 was a major focus of the election, particularly in terms of foreign policy. The dataset includes a list of 1,545 words that appeared at least 50 times across the articles in the dataset. These words have been processed to remove punctuation and common words known as "stop words." For each article, the dataset includes the number of times each word appears in that article.  
+
+### Hierarchical Clustering
+
+```{r}
+dailykos = read.csv("dailykos.csv")
+```
+
+The "hclust" function is being used to create a tree-like diagram (called a dendrogram) that shows the arrangement of the clusters. The "ward.D" method specifies the algorithm used to calculate the distance between clusters. Ward's method is a method of variance minimization, which seeks to minimize the sum of squared distances between points in the same cluster.   
+
+
+```{r}
+kosDist = dist(dailykos, method = "euclidean")
+kosHierClust = hclust(kosDist, method = "ward.D")
+```
+
+Let's plot the tree and see what number of cluster seems approperiate.  
+
+```{r}
+plot(kosHierClust)
+```
+
+
+According to the dendrogram, it is advisable to select either 2 or 3 clusters, as these options correspond to points on the dendrogram where there is a significant distance between the horizontal lines. On the other hand, the options of 5 or 6 clusters may not be suitable, as there is very little space between the horizontal lines at these points on the dendrogram. In other words, the dendrogram indicates that 2 or 3 clusters would result in a clearer separation between groups, while 5 or 6 clusters may result in more overlap between groups. However, the purpose of clustering these news articles or blog posts is to group them into categories that can be presented to readers to help them choose which articles to read. Meaning, this application of clustering aims to make it easier for readers to find articles that are relevant to their interests. For this reason it appears that having 7 or 8 cluster groups is better than having just 2 or 3.  
+
+
+```{r}
+# Splitting the tree
+hierGroup = cutree(kosHierClust, k = 7)
+#Splitting the Data
+HierCluster1 = subset(dailykos, hierGroup == 1)
+HierCluster2 = subset(dailykos, hierGroup == 2)
+HierCluster3 = subset(dailykos, hierGroup == 3)
+HierCluster4 = subset(dailykos, hierGroup == 4)
+HierCluster5 = subset(dailykos, hierGroup == 5)
+HierCluster6 = subset(dailykos, hierGroup == 6)
+HierCluster7 = subset(dailykos, hierGroup == 7)
+```
+
+Let's explore the new sub data sets. 
+
+```{r}
+nrow(HierCluster1)
+nrow(HierCluster2)
+nrow(HierCluster3)
+nrow(HierCluster4)
+nrow(HierCluster5)
+nrow(HierCluster6)
+nrow(HierCluster7)
+```
+It appears that the first Cluster have the most observations, 1266 that is. Further more, the cluster with the least number of observations is the 7th cluster with 209 observation!.  
+
+Let's see a graphical representation of the cluster groups.  
+```{r}
+plot(kosHierClust)
+rect.hclust(kosHierClust, k = 7, border = "red")
+```
+  
+  
+As we mentioned earlier, this data set is fromt the year leading up to the 2004 election in the United State. That's why we believe that the cluster groups will have different representaion of different topics, like the war on Iraq. For instance, we will explore what different cluster represent by looking at the most frequent word in the cluster, in terms of avreage value.  
+```{r}
+library(knitr)
+kable((tail(sort(colMeans(HierCluster1)))))
+```
+
+We can see that the most frequent word in the first cluster in terms of the avreage value is Bush, which corrisponds to the president George W. Bush.  
+
+Let's see for the second cluster.   
+
+```{r}
+kable((tail(sort(colMeans(HierCluster2)))))
+```
+
+In this cluster, we can see that the words "November", "Poll", and "Vote" are the best to describe this cluster. Again, the elections. Now, let's see what cluster of the remaining ones is the one related to the war in Iraq.  
+```{r}
+kable((tail(sort(colMeans(HierCluster3)))))
+kable((tail(sort(colMeans(HierCluster4)))))
+kable((tail(sort(colMeans(HierCluster5)))))
+kable((tail(sort(colMeans(HierCluster6)))))
+kable((tail(sort(colMeans(HierCluster7)))))
+```
+
+It appears that Cluster 5 with the words "bush", "iraq", and "war" is the one about the war in Iraq. We can also see that Cluser 7 appears to be representing the democratic party since it has "dean", "kerry", and "edward" amongst its most frequent words. "dean" represents "Howard Dean" who is one of the democratic nominees for presedency, while "kerry" is related to "John kerry" the one that actually won the democratic nomination, and "edward" which corrisponds to "John Edwards" who is the vice president nominee.   
+
+### K-means Clustering 
+
+```{r}
+set.seed(123)
+kmc = kmeans(dailykos, centers = 7)
+```
+
+```{r}
+KmeansCluster1 = subset(dailykos, kmc$cluster == 1)
+KmeansCluster2 = subset(dailykos, kmc$cluster == 2)
+KmeansCluster3 = subset(dailykos, kmc$cluster == 3)
+KmeansCluster4 = subset(dailykos, kmc$cluster == 4)
+KmeansCluster5 = subset(dailykos, kmc$cluster == 5)
+KmeansCluster6 = subset(dailykos, kmc$cluster == 6)
+KmeansCluster7 = subset(dailykos, kmc$cluster == 7)
+```
+
+Let's have a look at our clustered sub data sets.
+
+```{r}
+nrow(KmeansCluster1)
+nrow(KmeansCluster2)
+nrow(KmeansCluster3)
+nrow(KmeansCluster4)
+nrow(KmeansCluster5)
+nrow(KmeansCluster6)
+nrow(KmeansCluster7)
+```
+it appears that our k-mean 6th cluster has the most number of observations, while the 5th one has the least number of observation.  
+Now let's have a look on which group each k-mean cluster represents.  
+```{r}
+kable((tail(sort(colMeans(KmeansCluster1)))))
+kable((tail(sort(colMeans(KmeansCluster2)))))
+kable((tail(sort(colMeans(KmeansCluster3)))))
+kable((tail(sort(colMeans(KmeansCluster4)))))
+kable((tail(sort(colMeans(KmeansCluster5)))))
+kable((tail(sort(colMeans(KmeansCluster6)))))
+kable((tail(sort(colMeans(KmeansCluster7)))))
+```
+
+We can first see that k-mean cluster 7 correspond to hierarchal cluster 2, as the most frequent words in both clusters are "november", "poll", and "vote". The 3rd k-mean Cluster corresponds to the war on Iraq, which as we explored earlier happens to be in the 5th hierarical cluster. Finally, "dean", "kerry", and " edward" which we spoke about before in the 7th hierarchal cluster, are represented in the 1st k-means cluster. 
+
+We can confirm all these observations by observing the following table: 
+
+```{r}
+kable(table(hierGroup, kmc$cluster))
+```
+
